@@ -29,6 +29,8 @@ let heroes = []
         .on('data', (data) => {
                 heroes.push({
                     "id":data.id,
+                    "imageUrl": data.imageUrl,
+                    "gender": data.gender,
                     "name": data.name,
                     "aliases":data["aliases"].slice(","),
                     "secretIdentity":data.secretIdentities.slice(","),
@@ -73,6 +75,8 @@ function createBulkInsertQuery(heroes) {
     const body = heroes.reduce((acc, hero) => {
       const { 
           id,
+          imageUrl,
+        gender,
         name,
         aliases,
         secretIdentity,
@@ -85,6 +89,8 @@ function createBulkInsertQuery(heroes) {
     console.log(hero);
       acc.push({ index: { _index: heroesIndexName, _type: '_doc', _id:hero.id } })
       acc.push({ id,
+        imageUrl,
+        gender,
         name,
         aliases,
         secretIdentity,
