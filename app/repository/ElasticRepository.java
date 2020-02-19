@@ -34,29 +34,31 @@ public class ElasticRepository {
     public CompletionStage<PaginatedResults<SearchedHero>> searchHeroes(String input, int size, int page) {
         //return CompletableFuture.completedFuture(new PaginatedResults<>(3, 1, 1, Arrays.asList(SearchedHeroSamples.IronMan(), SearchedHeroSamples.MsMarvel(), SearchedHeroSamples.SpiderMan())));
         String searched = input.trim();
-        int totalPage = size/page;
+        int start = size * (page - 1);
+        System.out.println(start);
         return wsClient.url(elasticConfiguration.uri + "/heroes/_search")
                 .post(Json.parse("{\n" +
                         "  \"query\": {\n" +
                         "    \"query_string\": {\n" +
                         "      \"fields\": [\"name^3\", \"aliases^2\", \"secretIdentity^3\"],\n" +
-                        "      \"query\": \""+searched+"\"\n" +
+                        "      \"query\": \"" + searched + "\"\n" +
                         "    }\n" +
-                        "  }\n" +
+                        "  },\n" +
+                        "  \"from\": "+start+"\n" +
                         "}"))
-                        .thenApply(response -> {
-                            JsonNode responseObj = response.asJson().get("hits");
-                            Iterator<JsonNode> hits = responseObj.withArray("hits").elements();
-                            ArrayList<SearchedHero> heroes = new ArrayList<>();
-                            while (hits.hasNext()){
-                                JsonNode hero = hits.next().get("_source");
-                                SearchedHero searchedHero = SearchedHero.fromJson(hero);
-                                heroes.add(searchedHero);
-                            }
-                            int numHeroes = responseObj.get("total").get("value").asInt();
-                            int total = (int) Math.ceil((double) numHeroes/size);
-                            return new PaginatedResults<>(numHeroes, page, total, heroes);
-                        });
+                .thenApply(response -> {
+                    JsonNode responseObj = response.asJson().get("hits");
+                    Iterator<JsonNode> hits = responseObj.withArray("hits").elements();
+                    ArrayList<SearchedHero> heroes = new ArrayList<>();
+                    while (hits.hasNext()) {
+                        JsonNode hero = hits.next().get("_source");
+                        SearchedHero searchedHero = SearchedHero.fromJson(hero);
+                        heroes.add(searchedHero);
+                    }
+                    int numHeroes = responseObj.get("total").get("value").asInt();
+                    int totalPage = (int) Math.ceil((double) numHeroes / size);
+                    return new PaginatedResults<>(numHeroes, page, totalPage, heroes);
+                });
     }
 
     public CompletionStage<List<SearchedHero>> suggest(String input) {
@@ -65,7 +67,7 @@ public class ElasticRepository {
                 .post(Json.parse("{\n" +
                         "  \"suggest\": {\n" +
                         "        \"hero-suggest\" : {\n" +
-                        "            \"prefix\" : \""+input+"\", \n" +
+                        "            \"prefix\" : \"" + input + "\", \n" +
                         "            \"completion\" : { \n" +
                         "                \"field\" : \"suggest\" \n" +
                         "            }\n" +
@@ -76,12 +78,12 @@ public class ElasticRepository {
                     JsonNode responseObj = response.asJson().get("suggest").withArray("hero-suggest").get(0);
                     Iterator<JsonNode> hits = responseObj.withArray("options").elements();
                     ArrayList<SearchedHero> heroes = new ArrayList<>();
-                    while (hits.hasNext()){
+                    while (hits.hasNext()) {
                         JsonNode hero = hits.next().get("_source");
                         SearchedHero searchedHero = SearchedHero.fromJson(hero);
                         heroes.add(searchedHero);
                     }
                     return heroes;
                 });
-            }
+    }
 }
