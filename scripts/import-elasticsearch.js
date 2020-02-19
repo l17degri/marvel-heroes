@@ -22,32 +22,33 @@ client.indices.create({
 let heroes = []
 
     // Read CSV file
-    fs.createReadStream('scripts/all-heroes.csv')
+    fs.createReadStream('all-heroes.csv')
         .pipe(csv({
-            separator: ';'
+            separator: ','
         }))
         .on('data', (data) => {
-                hereos.push({
+                heroes.push({
+                    "id":data.id,
                     "name": data.name,
-                    "aliases":data["aliases"].split(','),
-                    "secretIdentity":data.secretIdentity.split(','),
+                    "aliases":data["aliases"].slice(","),
+                    "secretIdentity":data.secretIdentities.slice(","),
                     "universe":data.universe,
                     "firstAppearance":data.firstAppearance,
                     "yearAppearance":data.yearAppearance,
-                    "powers":data.powers.split(','),
+                    "powers":data.powers.slice(","),
                     "suggest": [ {
                         "input":data.name,
                         "weight":10
                     }, {
-                        "input":data.aliases.split(","),
+                        "input":data.aliases.slice(","),
                         "weight":5
                     }, {
-                        "input":data.secretIdentity.split(","),
+                        "input":data.secretIdentities.slice(","),
                         "weight":7
                     }]
                 })
                
-            if (hereos.length / 20000 >= 1) {
+            if (heroes.length / 20000 >= 1) {
                 client.bulk(createBulkInsertQuery(heroes), (err, resp) => {
                     if (err) console.trace(err.message);
                     else console.log(`Inserted ${resp.body.items.length} heroes`);
@@ -69,8 +70,9 @@ let heroes = []
 
 // Fonction utilitaire permettant de formatter les données pour l'insertion "bulk" dans elastic
 function createBulkInsertQuery(heroes) {
-    const body = hereos.reduce((acc, heroes) => {
+    const body = heroes.reduce((acc, hero) => {
       const { 
+          id,
         name,
         aliases,
         secretIdentity,
@@ -79,9 +81,11 @@ function createBulkInsertQuery(heroes) {
         yearAppearance,
         powers,
         suggest
-    } = heroe;
-      acc.push({ index: { _index: heroesIndexName, _type: '_doc' } })
-      acc.push({ name,
+    } = hero;
+    console.log(hero);
+      acc.push({ index: { _index: heroesIndexName, _type: '_doc', _id:hero.id } })
+      acc.push({ id,
+        name,
         aliases,
         secretIdentity,
         universe,
@@ -95,4 +99,3 @@ function createBulkInsertQuery(heroes) {
     return { body };
   }
 
-run().catch(console.error);
