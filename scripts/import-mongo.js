@@ -29,15 +29,15 @@ const insertActors = (db, callback) => {
                     "aliases": data.aliases.split(","),
                     "alignment": data.alignment,
                     "firstAppearance": data.firstAppearance,
-                    "yearAppearance": parseInt(data.yearAppearance),
+                    "yearAppearance": data.yearAppearance ? parseInt(data.yearAppearance) : "",
                     "universe": data.universe
                 },
                 "appearance": {
                     "gender": data.gender,
                     "race": data.race,
                     "type": data.type,
-                    "height": parseInt(data.height),
-                    "weight": parseInt(data.weight),
+                    "height": data.height ? parseInt(data.height) : "",
+                    "weight": data.weight ? parseInt(data.weight) : "",
                     "eyeColor": data.eyeColor,
                     "hairColor": data.hairColor
                 },
@@ -45,12 +45,12 @@ const insertActors = (db, callback) => {
                 "powers": data.powers.split(","),
                 "partners": data.partners.split(","),
                 "skills": {
-                    "intelligence": parseInt(data.intelligence),
-                    "strength": parseInt(data.strength),
-                    "speed": parseInt(data.speed),
-                    "durability": parseInt(data.durability),
-                    "power": parseInt(data.power),
-                    "combat": parseInt(data.combat)
+                    "intelligence": data.intelligence ? parseInt(data.intelligence) : "",
+                    "strength": data.strength ? parseInt(data.strength) : "",
+                    "speed": data.speed ? parseInt(data.speed) : "",
+                    "durability": data.durability ? parseInt(data.durability) : "",
+                    "power": data.power ? parseInt(data.power) : "",
+                    "combat": data.combat ? parseInt(data.combat): ""
                 },
                 "creators": data.creators.split(",")
             });
